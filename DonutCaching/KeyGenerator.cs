@@ -60,6 +60,10 @@ namespace DonutCaching
 				}
 			}
 
+			if (!string.IsNullOrEmpty(cacheSettings.VaryByHeader)) {
+				routeValues.Add(cacheSettings.VaryByHeader.ToLowerInvariant(), context.HttpContext.Request.Headers[cacheSettings.VaryByHeader]);
+			}
+
 			if (!string.IsNullOrEmpty(cacheSettings.VaryByCustom)) {
 				routeValues.Add(cacheSettings.VaryByCustom.ToLowerInvariant(), context.HttpContext.ApplicationInstance.GetVaryByCustomString(HttpContext.Current, cacheSettings.VaryByCustom));
 			}

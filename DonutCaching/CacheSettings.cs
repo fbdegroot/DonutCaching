@@ -8,6 +8,7 @@ namespace DonutCaching
 		public int Duration { get; set; }
 		public string VaryByParam { get; set; }
 		public string VaryByCustom { get; set; }
+		public string VaryByHeader { get; set; }
 		public OutputCacheLocation Location { get; set; }
 		public bool NoStore { get; set; }
 

@@ -22,6 +22,7 @@ namespace DonutCaching
 		public int Duration { get; set; }
 		public string VaryByParam { get; set; }
 		public string VaryByCustom { get; set; }
+		public string VaryByHeader { get; set; }
 		public string CacheProfile { get; set; }
 		public OutputCacheLocation Location { get; set; }
 
@@ -125,8 +126,9 @@ namespace DonutCaching
 				cacheSettings = new CacheSettings {
 					IsCachingEnabled = _cacheSettingsManager.IsCachingEnabledGlobally,
 					Duration = Duration,
-					VaryByCustom = VaryByCustom,
 					VaryByParam = VaryByParam,
+					VaryByCustom = VaryByCustom,
+					VaryByHeader = VaryByHeader,
 					Location = (int)Location == -1 ? OutputCacheLocation.Server : Location,
 					NoStore = NoStore
 				};
@@ -139,6 +141,7 @@ namespace DonutCaching
 					Duration = Duration == -1 ? cacheProfile.Duration : Duration,
 					VaryByCustom = VaryByCustom ?? cacheProfile.VaryByCustom,
 					VaryByParam = VaryByParam ?? cacheProfile.VaryByParam,
+					VaryByHeader = VaryByHeader ?? cacheProfile.VaryByHeader,
 					Location = (int)Location == -1 ? ((int)cacheProfile.Location == -1 ? OutputCacheLocation.Server : cacheProfile.Location) : Location,
 					NoStore = _noStore.HasValue ? _noStore.Value : cacheProfile.NoStore
 				};
