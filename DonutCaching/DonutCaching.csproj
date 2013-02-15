@@ -8,8 +8,8 @@
     <ProjectGuid>{854E90C7-8320-4EB6-A286-24A8EE5EBE9B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DevTrends.MvcDonutCaching</RootNamespace>
-    <AssemblyName>DevTrends.MvcDonutCaching</AssemblyName>
+    <RootNamespace>DonutCaching</RootNamespace>
+    <AssemblyName>DonutCaching</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
