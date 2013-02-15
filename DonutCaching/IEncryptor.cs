@@ -5,9 +5,9 @@ using System.Text;
 
 namespace DonutCaching
 {
-    public interface IEncryptor
-    {
-        string Encrypt(string plainText);
-        string Decrypt(string encryptedText);
-    }
+	public interface IEncryptor
+	{
+		string Encrypt(string plainText);
+		string Decrypt(string encryptedText);
+	}
 }

@@ -2,10 +2,10 @@
 
 namespace DonutCaching
 {
-    [Serializable]
-    public class CacheItem
-    {
-        public string Content { get; set; }
-        public string ContentType { get; set; }
-    }
+	[Serializable]
+	public class CacheItem
+	{
+		public string Content { get; set; }
+		public string ContentType { get; set; }
+	}
 }

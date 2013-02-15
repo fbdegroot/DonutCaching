@@ -2,11 +2,11 @@
 
 namespace DonutCaching
 {
-    public interface ICacheSettingsManager
-    {
-        string RetrieveOutputCacheProviderType();
-        OutputCacheProfile RetrieveOutputCacheProfile(string cacheProfileName);
+	public interface ICacheSettingsManager
+	{
+		string RetrieveOutputCacheProviderType();
+		OutputCacheProfile RetrieveOutputCacheProfile(string cacheProfileName);
 
-        bool IsCachingEnabledGlobally { get; }
-    }
+		bool IsCachingEnabledGlobally { get; }
+	}
 }

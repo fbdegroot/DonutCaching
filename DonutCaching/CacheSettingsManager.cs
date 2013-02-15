@@ -6,64 +6,57 @@ using System.Web.Configuration;
 
 namespace DonutCaching
 {
-    public class CacheSettingsManager : ICacheSettingsManager
-    {
-        private const string AspnetInternalProviderName = "AspNetInternalProvider";
-        private readonly OutputCacheSection _outputCacheSection;
+	public class CacheSettingsManager : ICacheSettingsManager
+	{
+		private const string AspnetInternalProviderName = "AspNetInternalProvider";
+		private readonly OutputCacheSection _outputCacheSection;
 
-        public CacheSettingsManager()
-        {
-            try
-            {
-                _outputCacheSection = (OutputCacheSection)ConfigurationManager.GetSection("system.web/caching/outputCache");
-            }
-            catch (SecurityException)
-            {
-                Trace.WriteLine("MvcDonutCaching does not have permission to read web.config section 'OutputCacheSection'. Using default provider.");
-                _outputCacheSection = new OutputCacheSection { DefaultProviderName = AspnetInternalProviderName, EnableOutputCache = true };
-            }
-            
-        }
+		public CacheSettingsManager()
+		{
+			try {
+				_outputCacheSection = (OutputCacheSection)ConfigurationManager.GetSection("system.web/caching/outputCache");
+			}
+			catch (SecurityException) {
+				Trace.WriteLine("MvcDonutCaching does not have permission to read web.config section 'OutputCacheSection'. Using default provider.");
+				_outputCacheSection = new OutputCacheSection { DefaultProviderName = AspnetInternalProviderName, EnableOutputCache = true };
+			}
 
-        public string RetrieveOutputCacheProviderType()
-        {
-            if (_outputCacheSection.DefaultProviderName == AspnetInternalProviderName)
-            {
-                return null;
-            }
+		}
 
-            return _outputCacheSection.Providers[_outputCacheSection.DefaultProviderName].Type;
-        }
+		public string RetrieveOutputCacheProviderType()
+		{
+			if (_outputCacheSection.DefaultProviderName == AspnetInternalProviderName) {
+				return null;
+			}
 
-        public OutputCacheProfile RetrieveOutputCacheProfile(string cacheProfileName)
-        {
-            OutputCacheSettingsSection outputCacheSettingsSection;
+			return _outputCacheSection.Providers[_outputCacheSection.DefaultProviderName].Type;
+		}
 
-            try
-            {
-                outputCacheSettingsSection = (OutputCacheSettingsSection)ConfigurationManager.GetSection("system.web/caching/outputCacheSettings");
-            }
-            catch (SecurityException)
-            {
-                throw new SecurityException("MvcDonutCaching does not have permission to read web.config section 'OutputCacheSettingsSection'.");
-            }
+		public OutputCacheProfile RetrieveOutputCacheProfile(string cacheProfileName)
+		{
+			OutputCacheSettingsSection outputCacheSettingsSection;
 
-            if (outputCacheSettingsSection != null && outputCacheSettingsSection.OutputCacheProfiles.Count > 0)
-            {
-                var cacheProfile = outputCacheSettingsSection.OutputCacheProfiles[cacheProfileName];
+			try {
+				outputCacheSettingsSection = (OutputCacheSettingsSection)ConfigurationManager.GetSection("system.web/caching/outputCacheSettings");
+			}
+			catch (SecurityException) {
+				throw new SecurityException("MvcDonutCaching does not have permission to read web.config section 'OutputCacheSettingsSection'.");
+			}
 
-                if (cacheProfile != null)
-                {
-                    return cacheProfile;
-                }
-            }
+			if (outputCacheSettingsSection != null && outputCacheSettingsSection.OutputCacheProfiles.Count > 0) {
+				var cacheProfile = outputCacheSettingsSection.OutputCacheProfiles[cacheProfileName];
 
-            throw new HttpException(string.Format("The '{0}' cache profile is not defined.  Please define it in the configuration file.", cacheProfileName));
-        }
+				if (cacheProfile != null) {
+					return cacheProfile;
+				}
+			}
 
-        public bool IsCachingEnabledGlobally
-        {
-            get { return _outputCacheSection.EnableOutputCache; }
-        }
-    }
+			throw new HttpException(string.Format("The '{0}' cache profile is not defined.  Please define it in the configuration file.", cacheProfileName));
+		}
+
+		public bool IsCachingEnabledGlobally
+		{
+			get { return _outputCacheSection.EnableOutputCache; }
+		}
+	}
 }

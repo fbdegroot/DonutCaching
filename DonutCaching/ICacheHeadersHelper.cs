@@ -2,8 +2,8 @@
 
 namespace DonutCaching
 {
-    public interface ICacheHeadersHelper
-    {
-        void SetCacheHeaders(HttpResponseBase response, CacheSettings settings);
-    }
+	public interface ICacheHeadersHelper
+	{
+		void SetCacheHeaders(HttpResponseBase response, CacheSettings settings);
+	}
 }

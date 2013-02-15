@@ -7,55 +7,51 @@ using System.Web.Routing;
 
 namespace DonutCaching
 {
-    public class DonutHoleFiller : IDonutHoleFiller
-    {
-        private static readonly Regex DonutHoles = new Regex("<!--Donut#(.*?)#-->(.*?)<!--EndDonut-->", RegexOptions.Compiled | RegexOptions.Singleline);
+	public class DonutHoleFiller : IDonutHoleFiller
+	{
+		private static readonly Regex DonutHoles = new Regex("<!--Donut#(.*?)#-->(.*?)<!--EndDonut-->", RegexOptions.Compiled | RegexOptions.Singleline);
 
-        private readonly IActionSettingsSerialiser _actionSettingsSerialiser;
+		private readonly IActionSettingsSerialiser _actionSettingsSerialiser;
 
-        public DonutHoleFiller(IActionSettingsSerialiser actionSettingsSerialiser)
-        {
-            if (actionSettingsSerialiser == null)
-            {
-                throw new ArgumentNullException("actionSettingsSerialiser");
-            }
+		public DonutHoleFiller(IActionSettingsSerialiser actionSettingsSerialiser)
+		{
+			if (actionSettingsSerialiser == null) {
+				throw new ArgumentNullException("actionSettingsSerialiser");
+			}
 
-            _actionSettingsSerialiser = actionSettingsSerialiser;
-        }
+			_actionSettingsSerialiser = actionSettingsSerialiser;
+		}
 
-        public string RemoveDonutHoleWrappers(string content, ControllerContext filterContext)
-        {
-            if (filterContext.IsChildAction)
-            {
-                return content;
-            }
+		public string RemoveDonutHoleWrappers(string content, ControllerContext filterContext)
+		{
+			if (filterContext.IsChildAction) {
+				return content;
+			}
 
-            return DonutHoles.Replace(content, match => match.Groups[2].Value);
-        }
+			return DonutHoles.Replace(content, match => match.Groups[2].Value);
+		}
 
-        public string ReplaceDonutHoleContent(string content, ControllerContext filterContext)
-        {
-            if (filterContext.IsChildAction)
-            {
-                return content;
-            }
+		public string ReplaceDonutHoleContent(string content, ControllerContext filterContext)
+		{
+			if (filterContext.IsChildAction) {
+				return content;
+			}
 
-            return DonutHoles.Replace(content, match =>
-            {
-                var actionSettings = _actionSettingsSerialiser.Deserialise(match.Groups[1].Value);
+			return DonutHoles.Replace(content, match => {
+				var actionSettings = _actionSettingsSerialiser.Deserialise(match.Groups[1].Value);
 
-                return InvokeAction(filterContext.Controller, actionSettings.ActionName, actionSettings.ControllerName, actionSettings.RouteValues);
-            });
-        }
+				return InvokeAction(filterContext.Controller, actionSettings.ActionName, actionSettings.ControllerName, actionSettings.RouteValues);
+			});
+		}
 
-        private static string InvokeAction(ControllerBase controller, string actionName, string controllerName, RouteValueDictionary routeValues)
-        {
-            var viewContext = new ViewContext(controller.ControllerContext, new WebFormView(controller.ControllerContext, "tmp"),
-                                              controller.ViewData, controller.TempData, TextWriter.Null);
+		private static string InvokeAction(ControllerBase controller, string actionName, string controllerName, RouteValueDictionary routeValues)
+		{
+			var viewContext = new ViewContext(controller.ControllerContext, new WebFormView(controller.ControllerContext, "tmp"),
+											  controller.ViewData, controller.TempData, TextWriter.Null);
 
-            var htmlHelper = new HtmlHelper(viewContext, new ViewPage());
+			var htmlHelper = new HtmlHelper(viewContext, new ViewPage());
 
-            return htmlHelper.Action(actionName, controllerName, routeValues).ToString();
-        }
-    }
+			return htmlHelper.Action(actionName, controllerName, routeValues).ToString();
+		}
+	}
 }

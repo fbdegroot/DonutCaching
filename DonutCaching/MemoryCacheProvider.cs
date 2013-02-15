@@ -6,41 +6,40 @@ using System.Web.Caching;
 
 namespace DonutCaching
 {
-    public class MemoryCacheProvider : OutputCacheProvider, IEnumerable<KeyValuePair<string, object>>
-    {
-        private static readonly ObjectCache Cache = MemoryCache.Default;
+	public class MemoryCacheProvider : OutputCacheProvider, IEnumerable<KeyValuePair<string, object>>
+	{
+		private static readonly ObjectCache Cache = MemoryCache.Default;
 
-        public override object Add(string key, object entry, DateTime utcExpiry)
-        {
-            return Cache.AddOrGetExisting(key, entry, utcExpiry);            
-        }
+		public override object Add(string key, object entry, DateTime utcExpiry)
+		{
+			return Cache.AddOrGetExisting(key, entry, utcExpiry);
+		}
 
-        public override object Get(string key)
-        {
-            return Cache.Get(key);
-        }
+		public override object Get(string key)
+		{
+			return Cache.Get(key);
+		}
 
-        public override void Remove(string key)
-        {
-            Cache.Remove(key);
-        }
+		public override void Remove(string key)
+		{
+			Cache.Remove(key);
+		}
 
-        public override void Set(string key, object entry, DateTime utcExpiry)
-        {
-            Cache.Set(key, entry, utcExpiry);
-        }
+		public override void Set(string key, object entry, DateTime utcExpiry)
+		{
+			Cache.Set(key, entry, utcExpiry);
+		}
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-        {
-            foreach (var item in Cache)
-            {
-                yield return item;
-            }
-        }
+		public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+		{
+			foreach (var item in Cache) {
+				yield return item;
+			}
+		}
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
+	}
 }

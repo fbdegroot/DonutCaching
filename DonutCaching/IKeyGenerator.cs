@@ -2,8 +2,8 @@
 
 namespace DonutCaching
 {
-    public interface IKeyGenerator
-    {
-        string GenerateKey(ControllerContext context, CacheSettings cacheSettings);
-    }
+	public interface IKeyGenerator
+	{
+		string GenerateKey(ControllerContext context, CacheSettings cacheSettings);
+	}
 }

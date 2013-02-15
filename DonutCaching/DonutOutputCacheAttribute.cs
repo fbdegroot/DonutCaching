@@ -7,169 +7,152 @@ using System.Web.UI;
 
 namespace DonutCaching
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class DonutOutputCacheAttribute : ActionFilterAttribute, IExceptionFilter
-    {
-        private readonly IKeyGenerator _keyGenerator;
-        private readonly IDonutHoleFiller _donutHoleFiller;
-        private readonly IExtendedOutputCacheManager _outputCacheManager;
-        private readonly ICacheSettingsManager _cacheSettingsManager;
-        private readonly ICacheHeadersHelper _cacheHeadersHelper;
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+	public class DonutOutputCacheAttribute : ActionFilterAttribute, IExceptionFilter
+	{
+		private readonly IKeyGenerator _keyGenerator;
+		private readonly IDonutHoleFiller _donutHoleFiller;
+		private readonly IExtendedOutputCacheManager _outputCacheManager;
+		private readonly ICacheSettingsManager _cacheSettingsManager;
+		private readonly ICacheHeadersHelper _cacheHeadersHelper;
 
-        private bool? _noStore;
-        private CacheSettings _cacheSettings;
+		private bool? _noStore;
+		private CacheSettings _cacheSettings;
 
-        public int Duration { get; set; }
-        public string VaryByParam { get; set; }
-        public string VaryByCustom { get; set; }
-        public string CacheProfile { get; set; }
-        public OutputCacheLocation Location { get; set; }
-        
-        public bool NoStore 
-        {
-            get { return _noStore ?? false; }
-            set { _noStore = value; }
-        }
+		public int Duration { get; set; }
+		public string VaryByParam { get; set; }
+		public string VaryByCustom { get; set; }
+		public string CacheProfile { get; set; }
+		public OutputCacheLocation Location { get; set; }
 
-        public DonutOutputCacheAttribute()
-        {
-            var keyBuilder = new KeyBuilder();
+		public bool NoStore
+		{
+			get { return _noStore ?? false; }
+			set { _noStore = value; }
+		}
 
-            _keyGenerator = new KeyGenerator(keyBuilder);
-            _donutHoleFiller = new DonutHoleFiller(new EncryptingActionSettingsSerialiser(new ActionSettingsSerialiser(), new Encryptor()));
-            _outputCacheManager = new OutputCacheManager(OutputCache.Instance, keyBuilder);
-            _cacheSettingsManager = new CacheSettingsManager();
-            _cacheHeadersHelper = new CacheHeadersHelper();
+		public DonutOutputCacheAttribute()
+		{
+			var keyBuilder = new KeyBuilder();
 
-            Duration = -1;
-            Location = (OutputCacheLocation)(-1);
-        }
+			_keyGenerator = new KeyGenerator(keyBuilder);
+			_donutHoleFiller = new DonutHoleFiller(new EncryptingActionSettingsSerialiser(new ActionSettingsSerialiser(), new Encryptor()));
+			_outputCacheManager = new OutputCacheManager(OutputCache.Instance, keyBuilder);
+			_cacheSettingsManager = new CacheSettingsManager();
+			_cacheHeadersHelper = new CacheHeadersHelper();
 
-        public override void OnActionExecuting(ActionExecutingContext filterContext)
-        {
-            _cacheSettings = BuildCacheSettings();
+			Duration = -1;
+			Location = (OutputCacheLocation)(-1);
+		}
 
-            var cacheKey = _keyGenerator.GenerateKey(filterContext, _cacheSettings);
+		public override void OnActionExecuting(ActionExecutingContext filterContext)
+		{
+			_cacheSettings = BuildCacheSettings();
 
-            if (_cacheSettings.IsServerCachingEnabled)
-            {
-                var cachedItem = _outputCacheManager.GetItem(cacheKey);
+			var cacheKey = _keyGenerator.GenerateKey(filterContext, _cacheSettings);
 
-                if (cachedItem != null)
-                {
-                    filterContext.Result = new ContentResult
-                    { 
-                        Content = _donutHoleFiller.ReplaceDonutHoleContent(cachedItem.Content, filterContext),
-                        ContentType = cachedItem.ContentType
-                    };
-                }
-            }
+			if (_cacheSettings.IsServerCachingEnabled) {
+				var cachedItem = _outputCacheManager.GetItem(cacheKey);
 
-            if (filterContext.Result == null)
-            {
-                var cachingWriter = new StringWriter(CultureInfo.InvariantCulture);
+				if (cachedItem != null) {
+					filterContext.Result = new ContentResult {
+						Content = _donutHoleFiller.ReplaceDonutHoleContent(cachedItem.Content, filterContext),
+						ContentType = cachedItem.ContentType
+					};
+				}
+			}
 
-                var originalWriter = filterContext.HttpContext.Response.Output;
+			if (filterContext.Result == null) {
+				var cachingWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-                filterContext.HttpContext.Response.Output = cachingWriter;
+				var originalWriter = filterContext.HttpContext.Response.Output;
 
-                filterContext.HttpContext.Items[cacheKey] = new Action<bool>(hasErrors =>
-                {
-                    filterContext.HttpContext.Items.Remove(cacheKey);
+				filterContext.HttpContext.Response.Output = cachingWriter;
 
-                    filterContext.HttpContext.Response.Output = originalWriter;
+				filterContext.HttpContext.Items[cacheKey] = new Action<bool>(hasErrors => {
+					filterContext.HttpContext.Items.Remove(cacheKey);
 
-                    if (!hasErrors)
-                    {
-                        var cacheItem = new CacheItem
-                        {
-                            Content = cachingWriter.ToString(),
-                            ContentType = filterContext.HttpContext.Response.ContentType
-                        };
+					filterContext.HttpContext.Response.Output = originalWriter;
 
-                        filterContext.HttpContext.Response.Write(_donutHoleFiller.RemoveDonutHoleWrappers(cacheItem.Content, filterContext));
+					if (!hasErrors) {
+						var cacheItem = new CacheItem {
+							Content = cachingWriter.ToString(),
+							ContentType = filterContext.HttpContext.Response.ContentType
+						};
 
-                        if (_cacheSettings.IsServerCachingEnabled && filterContext.HttpContext.Response.StatusCode == 200)
-                        {
-                            _outputCacheManager.AddItem(cacheKey, cacheItem, DateTime.UtcNow.AddSeconds(_cacheSettings.Duration));
-                        }
-                    }
-                });
-            }
-        }
+						filterContext.HttpContext.Response.Write(_donutHoleFiller.RemoveDonutHoleWrappers(cacheItem.Content, filterContext));
 
-        public override void OnResultExecuted(ResultExecutedContext filterContext)
-        {
-            ExecuteCallback(filterContext, false);
+						if (_cacheSettings.IsServerCachingEnabled && filterContext.HttpContext.Response.StatusCode == 200) {
+							_outputCacheManager.AddItem(cacheKey, cacheItem, DateTime.UtcNow.AddSeconds(_cacheSettings.Duration));
+						}
+					}
+				});
+			}
+		}
 
-            if (!filterContext.IsChildAction)
-            {
-                _cacheHeadersHelper.SetCacheHeaders(filterContext.HttpContext.Response, _cacheSettings);
-            }
-        }
+		public override void OnResultExecuted(ResultExecutedContext filterContext)
+		{
+			ExecuteCallback(filterContext, false);
 
-        public void OnException(ExceptionContext filterContext)
-        {
-            if (_cacheSettings != null)
-            {
-                ExecuteCallback(filterContext, true);
-            }
-        }
+			if (!filterContext.IsChildAction) {
+				_cacheHeadersHelper.SetCacheHeaders(filterContext.HttpContext.Response, _cacheSettings);
+			}
+		}
 
-        private void ExecuteCallback(ControllerContext context, bool hasErrors)
-        {
-            var cacheKey = _keyGenerator.GenerateKey(context, _cacheSettings);
+		public void OnException(ExceptionContext filterContext)
+		{
+			if (_cacheSettings != null) {
+				ExecuteCallback(filterContext, true);
+			}
+		}
 
-            var callback = context.HttpContext.Items[cacheKey] as Action<bool>;
+		private void ExecuteCallback(ControllerContext context, bool hasErrors)
+		{
+			var cacheKey = _keyGenerator.GenerateKey(context, _cacheSettings);
 
-            if (callback != null)
-            {
-                callback.Invoke(hasErrors);
-            }
-        }
+			var callback = context.HttpContext.Items[cacheKey] as Action<bool>;
 
-        private CacheSettings BuildCacheSettings()
-        {
-            CacheSettings cacheSettings;
+			if (callback != null) {
+				callback.Invoke(hasErrors);
+			}
+		}
 
-            if (string.IsNullOrEmpty(CacheProfile))
-            {
-                cacheSettings = new CacheSettings
-                {
-                    IsCachingEnabled = _cacheSettingsManager.IsCachingEnabledGlobally,
-                    Duration = Duration,
-                    VaryByCustom = VaryByCustom,
-                    VaryByParam = VaryByParam,
-                    Location = (int)Location == -1 ? OutputCacheLocation.Server : Location,
-                    NoStore = NoStore
-                };
-            }
-            else
-            {
-                var cacheProfile = _cacheSettingsManager.RetrieveOutputCacheProfile(CacheProfile);
+		private CacheSettings BuildCacheSettings()
+		{
+			CacheSettings cacheSettings;
 
-                cacheSettings = new CacheSettings
-                {
-                    IsCachingEnabled = _cacheSettingsManager.IsCachingEnabledGlobally && cacheProfile.Enabled,
-                    Duration = Duration == -1 ? cacheProfile.Duration : Duration,
-                    VaryByCustom = VaryByCustom ?? cacheProfile.VaryByCustom,
-                    VaryByParam = VaryByParam ?? cacheProfile.VaryByParam,
-                    Location = (int)Location == -1 ? ((int)cacheProfile.Location == -1 ? OutputCacheLocation.Server : cacheProfile.Location) : Location,
-                    NoStore = _noStore.HasValue ? _noStore.Value : cacheProfile.NoStore
-                };
-            }
+			if (string.IsNullOrEmpty(CacheProfile)) {
+				cacheSettings = new CacheSettings {
+					IsCachingEnabled = _cacheSettingsManager.IsCachingEnabledGlobally,
+					Duration = Duration,
+					VaryByCustom = VaryByCustom,
+					VaryByParam = VaryByParam,
+					Location = (int)Location == -1 ? OutputCacheLocation.Server : Location,
+					NoStore = NoStore
+				};
+			}
+			else {
+				var cacheProfile = _cacheSettingsManager.RetrieveOutputCacheProfile(CacheProfile);
 
-            if (cacheSettings.Duration == -1)
-            {
-                throw new HttpException("The directive or the configuration settings profile must specify the 'duration' attribute.");
-            }
+				cacheSettings = new CacheSettings {
+					IsCachingEnabled = _cacheSettingsManager.IsCachingEnabledGlobally && cacheProfile.Enabled,
+					Duration = Duration == -1 ? cacheProfile.Duration : Duration,
+					VaryByCustom = VaryByCustom ?? cacheProfile.VaryByCustom,
+					VaryByParam = VaryByParam ?? cacheProfile.VaryByParam,
+					Location = (int)Location == -1 ? ((int)cacheProfile.Location == -1 ? OutputCacheLocation.Server : cacheProfile.Location) : Location,
+					NoStore = _noStore.HasValue ? _noStore.Value : cacheProfile.NoStore
+				};
+			}
 
-            if (cacheSettings.Duration < 0)
-            {
-                throw new HttpException("The 'duration' attribute must have a value that is greater than or equal to zero.");
-            }
+			if (cacheSettings.Duration == -1) {
+				throw new HttpException("The directive or the configuration settings profile must specify the 'duration' attribute.");
+			}
 
-            return cacheSettings;
-        }        
-    }
+			if (cacheSettings.Duration < 0) {
+				throw new HttpException("The 'duration' attribute must have a value that is greater than or equal to zero.");
+			}
+
+			return cacheSettings;
+		}
+	}
 }
