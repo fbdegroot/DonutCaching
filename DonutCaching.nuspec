@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <version></version>
+    <authors>Fabian de Groot</authors>
+    <owners />
+    <projectUrl>https://github.com/fbdegroot/DonutCaching</projectUrl>
+    <id>DonutCaching</id>
+    <title>DonutCaching</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>DonutCaching provides extensible donut output caching for ASP.NET MVC 3 and above.
+
+Forked from http://mvcdonutcaching.codeplex.com.</description>
+    <tags>mvc3 donut caching mvc outputcaching substitution</tags>
+  </metadata>
+  <files>
+    <file src="DonutCaching.dll" target="lib\net45\DonutCaching.dll" />
+    <file src="..\..\..\Nuget\Content\Views\web.config.transform" target="content\views\web.config.transform" />
+  </files>
+</package>
